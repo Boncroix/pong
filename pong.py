@@ -1,4 +1,6 @@
+from random import randint
 import pygame
+
 # CONSTANTES PANTALLA
 MARGEN = 20
 ANCHO = 800
@@ -11,14 +13,16 @@ C_OBJETOS = (255, 255, 255)
 C_FONDO = (100, 100, 100)
 
 # CONSTANTES PALAS
-ANCHO_PALA = 20
+ANCHO_PALA = 10
 ALTO_PALA = 60
 
 # CONSTANTES RED
 ANCHO_RED = 3
 
 # CONSTANTES PELOTA
-TAM_PELOTA = 10
+TAM_PELOTA = 15
+CENTRO_X_RECTANGULO = (ANCHO - TAM_PELOTA)/2
+CENTRO_Y_RECTANGULO = (ALTO - TAM_PELOTA)/2
 
 
 TAMANO_FUENTE = 100
@@ -26,15 +30,39 @@ POS_MARCADOR1 = (200, 20)
 POS_MARCADOR2 = (520, 20)
 
 
-class Pelota:
+class Pelota(pygame.Rect):  # heredamos de rectangulo y nuestra propia pelota es un rectangulo
     def __init__(self):
-        # definición del rectangulo
-        self.rectangulo = pygame.Rect(
-            (ANCHO - TAM_PELOTA)/2, (ALTO - TAM_PELOTA)/2, TAM_PELOTA, TAM_PELOTA)
+        super(Pelota, self).__init__(  # heredamos de la clase superior
+            CENTRO_X_RECTANGULO, CENTRO_Y_RECTANGULO, TAM_PELOTA, TAM_PELOTA)
+
+        # movimiento de la bola
+        self.velocidad_y = randint(-5, 5)
+        self.velocidad_x = randint(-5, 5)
+        while self.velocidad_x == 0:            # La velocidad no puede ser 0
+            self.velocidad_x = randint(-5, 5)
 
     def pintame(self, pantalla):
         # pintar el rectangulo
-        pygame.draw.rect(pantalla, C_OBJETOS, self.rectangulo)
+        pygame.draw.rect(pantalla, C_OBJETOS, self)
+
+    def mover(self):
+        self.x = self.x + self.velocidad_x
+        self.y = self.y + self.velocidad_y
+        if self.y <= 0:
+            self.y = 0
+            self.velocidad_y = - self.velocidad_y
+
+        if self.y >= ALTO - TAM_PELOTA:
+            self.y = ALTO - TAM_PELOTA
+            self.velocidad_y = - self.velocidad_y
+
+
+class Jugador(pygame.Rect):
+    def __init__(self, x, y):
+        super(Jugador, self).__init__(x, y, ANCHO_PALA, ALTO_PALA)
+
+    def pintame(self, pantalla):
+        pygame.draw.rect(pantalla, C_OBJETOS, self)
 
 
 class Pong:
@@ -43,9 +71,11 @@ class Pong:
         pygame.display.set_caption('Ping - Pong')
         self.pantalla = pygame.display.set_mode((800, 600))
         self.pelota = Pelota()
+        pos_y = (ALTO - ALTO_PALA)/2
+        self.jugador1 = Jugador(MARGEN, pos_y)
+        self.jugador2 = Jugador(ANCHO - MARGEN - ANCHO_PALA, pos_y)
 
     def jugar(self):    # contiene el bucle principal
-        pos_alto_inicial = ALTO/2 - ALTO_PALA/2
         salir = False
         while not salir:
             # bucle principal (o main loop)
@@ -55,37 +85,15 @@ class Pong:
                     salir = True
 
             # renderizar nuestros objetos
-
             pygame.draw.rect(self.pantalla, C_FONDO, ((0, 0), (ANCHO, ALTO)))
 
-            # pintar jugador 1 (izquierda)
-            jugador1 = pygame.Rect(
-                MARGEN, pos_alto_inicial, ANCHO_PALA, ALTO_PALA)
-            pygame.draw.rect(self.pantalla, C_OBJETOS, jugador1)
+            self.pintar_red()                       # Pintamos la red
+            self.pelota.mover()                     # Mover la pelota
+            self.pelota.pintame(self.pantalla)      # Pintamos la pelota
+            self.jugador1.pintame(self.pantalla)    # Pintamos jugador1
+            self.jugador2.pintame(self.pantalla)    # Pintamos Jugador2
 
-            # pintar marcador jugador 1 (izquierda)
-            score1 = '00'
-            marcador1 = pygame.font.Font(None, TAMANO_FUENTE)
-            text1 = marcador1.render(score1, True, C_OBJETOS)
-            self.pantalla.blit(text1, POS_MARCADOR1)
-
-            # pintar jugador 2 (derecha)
-            jugador2 = pygame.Rect(
-                ANCHO - MARGEN - ANCHO_PALA, pos_alto_inicial, ANCHO_PALA, ALTO_PALA)
-            pygame.draw.rect(self.pantalla, C_OBJETOS, jugador2)
-
-            # pintar marcador jugador 2 (derecha)
-            score2 = '10'
-            marcador2 = pygame.font.Font(None, TAMANO_FUENTE)
-            text2 = marcador2.render(score2, True, C_OBJETOS)
-            self.pantalla.blit(text2, POS_MARCADOR2)
-
-            self.pintar_red()
-
-            self.pelota.pintame(self.pantalla)
-
-            # mostrar los cambios en la pantalla
-            pygame.display.flip()
+            pygame.display.flip()                   # mostrar los cambios en la pantalla
 
         pygame.quit()
 
