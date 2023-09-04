@@ -1,25 +1,40 @@
 import pygame
-
+# CONSTANTES PANTALLA
+MARGEN = 20
 ANCHO = 800
 ALTO = 600
+CENTRO_X = ANCHO/2
+CENTRO_Y = ALTO/2
 
+# CONSTANTES  COMUNES OBJETOS
 C_OBJETOS = (255, 255, 255)
 C_FONDO = (100, 100, 100)
 
+# CONSTANTES PALAS
 ANCHO_PALA = 20
 ALTO_PALA = 60
 
-ANCHO_RED = 5
-ALTO_RED = 10
+# CONSTANTES RED
+ANCHO_RED = 3
 
-CENTRO = (ANCHO/2, ALTO/2)
-RADIO = 10
+# CONSTANTES PELOTA
+TAM_PELOTA = 10
+
 
 TAMANO_FUENTE = 100
 POS_MARCADOR1 = (200, 20)
 POS_MARCADOR2 = (520, 20)
 
-MARGEN = 20
+
+class Pelota:
+    def __init__(self):
+        # definición del rectangulo
+        self.rectangulo = pygame.Rect(
+            (ANCHO - TAM_PELOTA)/2, (ALTO - TAM_PELOTA)/2, TAM_PELOTA, TAM_PELOTA)
+
+    def pintame(self, pantalla):
+        # pintar el rectangulo
+        pygame.draw.rect(pantalla, C_OBJETOS, self.rectangulo)
 
 
 class Pong:
@@ -27,6 +42,7 @@ class Pong:
         pygame.init()
         pygame.display.set_caption('Ping - Pong')
         self.pantalla = pygame.display.set_mode((800, 600))
+        self.pelota = Pelota()
 
     def jugar(self):    # contiene el bucle principal
         pos_alto_inicial = ALTO/2 - ALTO_PALA/2
@@ -64,21 +80,23 @@ class Pong:
             text2 = marcador2.render(score2, True, C_OBJETOS)
             self.pantalla.blit(text2, POS_MARCADOR2)
 
-            # pintar la red
-            pos_alto_red = ALTO
-            while pos_alto_red > -5:
-                red = pygame.Rect(ANCHO/2 - ANCHO_RED/2,
-                                  pos_alto_red, ANCHO_RED, ALTO_RED)
-                pygame.draw.rect(self.pantalla, C_OBJETOS, red)
-                pos_alto_red -= 20
+            self.pintar_red()
 
-            # pintar pelota
-            pygame.draw.circle(self.pantalla, C_OBJETOS, CENTRO, RADIO)
+            self.pelota.pintame(self.pantalla)
 
             # mostrar los cambios en la pantalla
             pygame.display.flip()
 
         pygame.quit()
+
+    def pintar_red(self):
+        # pintar la red Tonny
+        tramo_pintado = 15
+        tramo_vacio = 10
+        centro_red = ANCHO / 2
+        for y in range(0, ALTO, tramo_pintado + tramo_vacio):
+            pygame.draw.line(self.pantalla, C_OBJETOS, (centro_red, y),
+                             (centro_red, y + tramo_pintado), ANCHO_RED)
 
 
 if __name__ == '__main__':
