@@ -51,3 +51,4 @@ deactivate
 - Ver la URL de una referencia remota (por ejemplo, _origin_) `git remote get-url origin`
 - Cambiar la URL de una referencia remota (por ejemplo, origin) `git remote set-url origin https://nueva-url`
 - Crear una nueva referencia remota `git remote add <nombre> <url>`
+- Enviar los commits ya realizados se tiene que realizar la primera vez `git push origin main`

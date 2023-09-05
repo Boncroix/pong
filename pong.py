@@ -56,6 +56,14 @@ class Pelota(pygame.Rect):  # heredamos de rectangulo y nuestra propia pelota es
             self.y = ALTO - TAM_PELOTA
             self.velocidad_y = - self.velocidad_y
 
+        if self.x <= 0:
+            self.x = 0
+            self.velocidad_x = - self.velocidad_x
+
+        if self.x >= ANCHO - TAM_PELOTA:
+            self.x = ANCHO - TAM_PELOTA
+            self.velocidad_x = - self.velocidad_x
+
 
 class Jugador(pygame.Rect):
     def __init__(self, x, y):
@@ -81,7 +89,7 @@ class Pong:
             # bucle principal (o main loop)
 
             for evento in pygame.event.get():
-                if evento.type == pygame.QUIT:
+                if evento.type == pygame.QUIT or (evento.type == pygame.KEYUP and evento.key == pygame.K_ESCAPE):
                     salir = True
 
             # renderizar nuestros objetos
