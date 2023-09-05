@@ -25,7 +25,7 @@ ANCHO_RED = 3
 
 # CONSTANTES PELOTA
 TAM_PELOTA = 15
-VELOCIDAD_PELOTA = 10
+VELOCIDAD_PELOTA = 30
 CENTRO_X_RECTANGULO = (ANCHO - TAM_PELOTA)/2
 CENTRO_Y_RECTANGULO = (ALTO - TAM_PELOTA)/2
 
@@ -56,13 +56,19 @@ class Pelota(pygame.Rect):  # heredamos de rectangulo y nuestra propia pelota es
             self.y = ALTO - TAM_PELOTA
             self.velocidad_y = - self.velocidad_y
 
-        if self.x <= 0:
-            self.x = 0
-            self.velocidad_x = - self.velocidad_x
-
-        if self.x >= ANCHO - TAM_PELOTA:
-            self.x = ANCHO - TAM_PELOTA
-            self.velocidad_x = - self.velocidad_x
+    def comprobar_punto(self):
+        if self.right <= 0:
+            print('Punto para el jugador 2')
+            self.center = (CENTRO_X_RECTANGULO, CENTRO_Y_RECTANGULO)
+            self.velocidad_y = randint(-VELOCIDAD_PELOTA, VELOCIDAD_PELOTA)
+            self.velocidad_x = randint(-VELOCIDAD_PELOTA, -1)
+            return 2
+        if self.left >= ANCHO:
+            print('Punto para el jugador 1')
+            self.center = (CENTRO_X_RECTANGULO, CENTRO_Y_RECTANGULO)
+            self.velocidad_y = randint(-VELOCIDAD_PELOTA, VELOCIDAD_PELOTA)
+            self.velocidad_x = randint(1, VELOCIDAD_PELOTA)
+            return 2
 
 
 class Jugador(pygame.Rect):
@@ -83,6 +89,17 @@ class Jugador(pygame.Rect):
                 self.y = ALTO - ALTO_PALA
             else:
                 self.y += VELOCIDAD_JUGADOR
+
+
+class Marcador:
+    '''
+        - Guardar la puntuación del jugador 1
+        - Guardar la puntuación del jugador 2
+        - Metodo para ponerse a cero
+        - Metodo para pintarse, mostrarse en la pantalla
+        - Pong tiene un atributo que llama a la instancia marcador
+    '''
+    pass
 
 
 class Pong:
@@ -117,6 +134,7 @@ class Pong:
 
             self.pintar_red()                       # Pintamos la red
             self.pintar_pelota()                    # Pintamos la pelota
+            self.pelota.comprobar_punto()
             self.jugador1.pintame(self.pantalla)    # Pintamos jugador1
             self.jugador2.pintame(self.pantalla)    # Pintamos Jugador2
 
@@ -137,8 +155,19 @@ class Pong:
             self.jugador2.mover(ABAJO)
 
     def pintar_pelota(self):
-        self.pelota.mover()                     # Mover la pelota
-        #
+        # Mover la pelota
+        self.pelota.mover()
+        # Comprobar rebotes con los jugadores(colliderect)
+        if self.pelota.colliderect(self.jugador1) or self.pelota.colliderect(self. jugador2):
+            self.pelota.velocidad_x = -self.pelota.velocidad_x + randint(-2, 2)
+            if self.pelota.velocidad_x < -VELOCIDAD_PELOTA:
+                self.pelota.velocidad_x = -VELOCIDAD_PELOTA
+            if self.pelota. velocidad_x > VELOCIDAD_PELOTA:
+                self.pelota.velocidad_x = VELOCIDAD_PELOTA
+                self .pelota.velocidad_y = randint(
+                    -VELOCIDAD_PELOTA, VELOCIDAD_PELOTA)
+                self.pelota.pintame(self.pantalla)
+
         self.pelota.pintame(self.pantalla)
 
     def pintar_red(self):
