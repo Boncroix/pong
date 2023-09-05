@@ -105,26 +105,18 @@ class Pong:
                 if evento.type == pygame.QUIT or (evento.type == pygame.KEYUP and evento.key == pygame.K_ESCAPE):
                     salir = True
 
-            estado_teclas = pygame.key.get_pressed()
-            if estado_teclas[pygame.K_a]:
-                self.jugador1.mover(ARRIBA)
-            if estado_teclas[pygame.K_z]:
-                self.jugador1.mover(ABAJO)
-            if estado_teclas[pygame.K_UP]:
-                self.jugador2.mover(ARRIBA)
-            if estado_teclas[pygame.K_DOWN]:
-                self.jugador2.mover(ABAJO)
+            self.combrobar_teclas()
 
             # renderizar nuestros objetos
-            pygame.draw.rect(self.pantalla, C_FONDO, ((0, 0), (ANCHO, ALTO)))
+            self.pantalla.fill(C_FONDO)
+            # pygame.draw.rect(self.pantalla, C_FONDO, ((0, 0), (ANCHO, ALTO))) es igual que la línea de arriba, pinta la pantalla completa
             pygame.draw.line(self.pantalla, C_OBJETOS,
                              (0, ALTO_PALA), (ANCHO, ALTO_PALA))
             pygame.draw.line(self.pantalla, C_OBJETOS,
                              (0, ALTO - ALTO_PALA), (ANCHO, ALTO - ALTO_PALA))
 
             self.pintar_red()                       # Pintamos la red
-            self.pelota.mover()                     # Mover la pelota
-            self.pelota.pintame(self.pantalla)      # Pintamos la pelota
+            self.pintar_pelota()                    # Pintamos la pelota
             self.jugador1.pintame(self.pantalla)    # Pintamos jugador1
             self.jugador2.pintame(self.pantalla)    # Pintamos Jugador2
 
@@ -132,6 +124,22 @@ class Pong:
             self.clock.tick(FPS)
 
         pygame.quit()
+
+    def combrobar_teclas(self):
+        estado_teclas = pygame.key.get_pressed()
+        if estado_teclas[pygame.K_a]:
+            self.jugador1.mover(ARRIBA)
+        if estado_teclas[pygame.K_z]:
+            self.jugador1.mover(ABAJO)
+        if estado_teclas[pygame.K_UP]:
+            self.jugador2.mover(ARRIBA)
+        if estado_teclas[pygame.K_DOWN]:
+            self.jugador2.mover(ABAJO)
+
+    def pintar_pelota(self):
+        self.pelota.mover()                     # Mover la pelota
+        #
+        self.pelota.pintame(self.pantalla)
 
     def pintar_red(self):
         # pintar la red Tonny
