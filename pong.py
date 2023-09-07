@@ -25,9 +25,17 @@ ANCHO_RED = 3
 
 # CONSTANTES PELOTA
 TAM_PELOTA = 15
-VELOCIDAD_PELOTA = 30
+VEL_MAXIMA = 20
 CENTRO_X_RECTANGULO = (ANCHO - TAM_PELOTA)/2
 CENTRO_Y_RECTANGULO = (ALTO - TAM_PELOTA)/2
+
+# CONSTANTES MARCADOR
+TAM_FUENTE = 80
+POSX_FUENTE = 310
+POSY_FUENTE = 0
+PUNTUACION_MAXIMA = 3
+
+TAM_LETRA_GANADOR = 50
 
 
 class Pelota(pygame.Rect):  # heredamos de rectangulo y nuestra propia pelota es un rectangulo
@@ -36,10 +44,10 @@ class Pelota(pygame.Rect):  # heredamos de rectangulo y nuestra propia pelota es
             CENTRO_X_RECTANGULO, CENTRO_Y_RECTANGULO, TAM_PELOTA, TAM_PELOTA)
 
         # movimiento de la bola
-        self.velocidad_y = randint(-VELOCIDAD_PELOTA, VELOCIDAD_PELOTA)
-        self.velocidad_x = randint(-VELOCIDAD_PELOTA, VELOCIDAD_PELOTA)
+        self.velocidad_y = randint(-VEL_MAXIMA, VEL_MAXIMA)
+        self.velocidad_x = randint(-VEL_MAXIMA, VEL_MAXIMA)
         while self.velocidad_x == 0:            # La velocidad no puede ser 0
-            self.velocidad_x = randint(-VELOCIDAD_PELOTA, VELOCIDAD_PELOTA)
+            self.velocidad_x = randint(-VEL_MAXIMA, VEL_MAXIMA)
 
     def pintame(self, pantalla):
         # pintar el rectangulo
@@ -60,15 +68,16 @@ class Pelota(pygame.Rect):  # heredamos de rectangulo y nuestra propia pelota es
         if self.right <= 0:
             print('Punto para el jugador 2')
             self.center = (CENTRO_X_RECTANGULO, CENTRO_Y_RECTANGULO)
-            self.velocidad_y = randint(-VELOCIDAD_PELOTA, VELOCIDAD_PELOTA)
-            self.velocidad_x = randint(-VELOCIDAD_PELOTA, -1)
+            self.velocidad_y = randint(-VEL_MAXIMA, VEL_MAXIMA)
+            self.velocidad_x = randint(-VEL_MAXIMA, -1)
             return 2
         if self.left >= ANCHO:
             print('Punto para el jugador 1')
             self.center = (CENTRO_X_RECTANGULO, CENTRO_Y_RECTANGULO)
-            self.velocidad_y = randint(-VELOCIDAD_PELOTA, VELOCIDAD_PELOTA)
-            self.velocidad_x = randint(1, VELOCIDAD_PELOTA)
-            return 2
+            self.velocidad_y = randint(-VEL_MAXIMA, VEL_MAXIMA)
+            self.velocidad_x = randint(1, VEL_MAXIMA)
+            return 1
+        return 0
 
 
 class Jugador(pygame.Rect):
@@ -99,20 +108,56 @@ class Marcador:
         - Metodo para pintarse, mostrarse en la pantalla
         - Pong tiene un atributo que llama a la instancia marcador
     '''
-    pass
+
+    def __init__(self):
+        self.reset()
+        self.tipografia = pygame.font.SysFont('arialunicode', TAM_FUENTE)
+
+    def incrementar(self, jugador):
+        self.puntos[jugador-1] += 1
+
+    def reset(self):
+        self.puntos = [0, 0]
+
+    def pintame(self, pantalla):
+        '''
+        forma mia 
+        marcador = self.tipografia .render(
+            f'{self.puntos[0]}                {self.puntos[1]}', True, C_OBJETOS)
+        tam_img_marcador = marcador.get_width()
+        posx = (ANCHO / 2) - (tam_img_marcador/2)
+        pantalla.blit(marcador, (posx, POSY_FUENTE))
+        '''
+        i = 1
+        for punto in self.puntos:
+            puntuacion = str(punto)
+            texto = self.tipografia.render(puntuacion, True, C_OBJETOS)
+            tam_img_marcador = texto.get_width()
+            pos_x = i / 4 * ANCHO - tam_img_marcador / 2
+            pantalla.blit(texto, (pos_x, POSY_FUENTE))
+            i += 2
+
+    def comprobar_ganador(self):
+        for jugador in range(len(self.puntos)):
+            if self.puntos[jugador] == PUNTUACION_MAXIMA:
+                return (f'Ha ganado el {jugador + 1} ')
 
 
 class Pong:
     def __init__(self):
         pygame.init()
+        # Cambiar nombre de pantalla
         pygame.display.set_caption('Ping - Pong')
         self.clock = pygame.time.Clock()
+        self.tipografia = pygame.font.SysFont(
+            'arialunicode', TAM_LETRA_GANADOR)
 
         self.pantalla = pygame.display.set_mode((800, 600))
         self.pelota = Pelota()
         pos_y = (ALTO - ALTO_PALA)/2
         self.jugador1 = Jugador(MARGEN, pos_y)
         self.jugador2 = Jugador(ANCHO - MARGEN - ANCHO_PALA, pos_y)
+        self.marcador = Marcador()
 
     def jugar(self):    # contiene el bucle principal
         salir = False
@@ -122,19 +167,28 @@ class Pong:
                 if evento.type == pygame.QUIT or (evento.type == pygame.KEYUP and evento.key == pygame.K_ESCAPE):
                     salir = True
 
-            self.combrobar_teclas()
-
             # renderizar nuestros objetos
             self.pantalla.fill(C_FONDO)
             # pygame.draw.rect(self.pantalla, C_FONDO, ((0, 0), (ANCHO, ALTO))) es igual que la línea de arriba, pinta la pantalla completa
-            pygame.draw.line(self.pantalla, C_OBJETOS,
-                             (0, ALTO_PALA), (ANCHO, ALTO_PALA))
-            pygame.draw.line(self.pantalla, C_OBJETOS,
-                             (0, ALTO - ALTO_PALA), (ANCHO, ALTO - ALTO_PALA))
 
             self.pintar_red()                       # Pintamos la red
-            self.pintar_pelota()                    # Pintamos la pelota
-            self.pelota.comprobar_punto()
+            hay_ganador = self.marcador.comprobar_ganador()
+            if hay_ganador:
+                mensaje = self.tipografia.render(hay_ganador, False, C_OBJETOS)
+                tam_img_marcador = mensaje.get_size()
+                pos_x = ANCHO / 2 - tam_img_marcador[0] / 2
+                pos_y = ALTO / 2 - tam_img_marcador[1] / 2
+                self.pantalla.blit(mensaje, (pos_x, pos_y))
+            else:
+                self.combrobar_teclas()
+                self.pintar_pelota()                    # Pintamos la pelota
+
+            hay_punto = self.pelota.comprobar_punto()
+            if hay_punto > 0:
+                self.marcador.incrementar(hay_punto)
+
+            self.marcador.pintame(self.pantalla)
+
             self.jugador1.pintame(self.pantalla)    # Pintamos jugador1
             self.jugador2.pintame(self.pantalla)    # Pintamos Jugador2
 
@@ -158,15 +212,27 @@ class Pong:
         # Mover la pelota
         self.pelota.mover()
         # Comprobar rebotes con los jugadores(colliderect)
+        '''
         if self.pelota.colliderect(self.jugador1) or self.pelota.colliderect(self. jugador2):
             self.pelota.velocidad_x = -self.pelota.velocidad_x + randint(-2, 2)
-            if self.pelota.velocidad_x < -VELOCIDAD_PELOTA:
-                self.pelota.velocidad_x = -VELOCIDAD_PELOTA
-            if self.pelota. velocidad_x > VELOCIDAD_PELOTA:
-                self.pelota.velocidad_x = VELOCIDAD_PELOTA
+            if self.pelota.velocidad_x < -VEL_MAXIMA:
+                self.pelota.velocidad_x = -VEL_MAXIMA
+            if self.pelota. velocidad_x > VEL_MAXIMA:
+                self.pelota.velocidad_x = VEL_MAXIMA
                 self .pelota.velocidad_y = randint(
-                    -VELOCIDAD_PELOTA, VELOCIDAD_PELOTA)
+                    -VEL_MAXIMA, VEL_MAXIMA)
                 self.pelota.pintame(self.pantalla)
+        '''
+
+        # ALTERNATIVA
+        if self.pelota.colliderect(self.jugador1):
+            self.pelota.velocidad_x = randint(1, VEL_MAXIMA)
+            self.pelota.velocidad_y = randint(-VEL_MAXIMA,
+                                              VEL_MAXIMA)
+        if self.pelota.colliderect(self.jugador2):
+            self.pelota.velocidad_x = randint(-VEL_MAXIMA, -1)
+            self.pelota.velocidad_y = randint(-VEL_MAXIMA,
+                                              VEL_MAXIMA)
 
         self.pelota.pintame(self.pantalla)
 
