@@ -174,11 +174,7 @@ class Pong:
             self.pintar_red()                       # Pintamos la red
             hay_ganador = self.marcador.comprobar_ganador()
             if hay_ganador:
-                mensaje = self.tipografia.render(hay_ganador, False, C_OBJETOS)
-                tam_img_marcador = mensaje.get_size()
-                pos_x = ANCHO / 2 - tam_img_marcador[0] / 2
-                pos_y = ALTO / 2 - tam_img_marcador[1] / 2
-                self.pantalla.blit(mensaje, (pos_x, pos_y))
+                salir = self.finalizar_partida(hay_ganador)
             else:
                 self.combrobar_teclas()
                 self.pintar_pelota()                    # Pintamos la pelota
@@ -196,6 +192,27 @@ class Pong:
             self.clock.tick(FPS)
 
         pygame.quit()
+
+    def finalizar_partida(self, hay_ganador):
+        texto_imagen = self.tipografia.render(hay_ganador, False, C_OBJETOS)
+        tam_img_marcador = texto_imagen.get_size()
+        pos_x = ANCHO / 2 - tam_img_marcador[0] / 2
+        pos_y = ALTO / 2 - tam_img_marcador[1] / 2
+        self.pantalla.blit(texto_imagen, (pos_x, pos_y))
+
+        mensaje = ('¿Jugamos Otra? S/N')
+        texto_imagen = self.tipografia.render(mensaje, False, C_OBJETOS)
+        tam_img_marcador = texto_imagen.get_size()
+        pos_x = ANCHO / 2 - tam_img_marcador[0] / 2
+        pos_y = ALTO / 2 + tam_img_marcador[1]
+        self.pantalla.blit(texto_imagen, (pos_x, pos_y))
+
+        estado_teclas = pygame.key.get_pressed()
+        if estado_teclas[pygame.K_s]:
+            self.marcador.reset()
+            return False
+        if estado_teclas[pygame.K_n]:
+            return True
 
     def combrobar_teclas(self):
         estado_teclas = pygame.key.get_pressed()
